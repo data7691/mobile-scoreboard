@@ -2,7 +2,7 @@
   "name": "橫向手機記分板",
   "short_name": "記分板",
   "start_url": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "landscape",
   "background_color": "#05070a",
   "theme_color": "#090b0f",
