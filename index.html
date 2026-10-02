@@ -1,692 +1,127 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-  <meta name="theme-color" content="#090b0f" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="記分板" />
-  <link rel="manifest" href="manifest.json" />
-  <title>橫向手機記分板</title>
-  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="theme-color" content="#100b08">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="龍紋記分板">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preload" href="./assets/dragon-triptych.webp" as="image">
+  <title>龍紋橫向記分板</title>
   <style>
+    :root{color-scheme:dark;--gold:#dcb66a;--cream:#fff3d8;--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px)}
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    :root{
-      --safe-t:env(safe-area-inset-top,0px);
-      --safe-r:env(safe-area-inset-right,0px);
-      --safe-b:env(safe-area-inset-bottom,0px);
-      --safe-l:env(safe-area-inset-left,0px);
-    }
-    html,body{
-      margin:0;
-      width:100%;
-      height:100%;
-      min-width:100%;
-      max-width:100%;
-      background:#05070a;
-      color:#fff;
-      font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;
-      overflow:hidden;
-      overscroll-behavior:none;
-    }
-    body{
-      position:fixed;
-      inset:0;
-      width:100%;
-      height:100dvh;
-    }
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08080b;color:var(--cream);font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;overscroll-behavior:none}
+    body{min-height:100dvh}
     button,input{font:inherit}
-    button{border:none;color:#fff;cursor:pointer;touch-action:manipulation}
-    .app{
-      width:100%;
-      max-width:100%;
-      height:100dvh;
-      display:grid;
-      grid-template-rows:minmax(54px,10vh) minmax(0,1fr) minmax(70px,13vh);
-      gap:7px;
-      padding:
-        max(6px,var(--safe-t))
-        max(8px,var(--safe-r))
-        max(6px,var(--safe-b))
-        max(8px,var(--safe-l));
-      overflow:hidden;
-      background:
-        radial-gradient(ellipse at 50% -15%,rgba(187,141,31,.18),transparent 34%),
-        radial-gradient(ellipse at 13% 55%,rgba(0,101,255,.08),transparent 35%),
-        radial-gradient(ellipse at 87% 55%,rgba(255,0,20,.08),transparent 35%),
-        linear-gradient(180deg,#101215 0%,#07090c 52%,#040608 100%);
-    }
-    .topbar{
-      min-width:0;
-      display:flex;
-      align-items:center;
-      gap:clamp(5px,1vw,12px);
-      padding:6px 10px;
-      border:1px solid #32363d;
-      border-radius:18px;
-      background:linear-gradient(180deg,rgba(26,29,34,.98),rgba(11,13,17,.98));
-      box-shadow:inset 0 0 0 1px #000,0 4px 20px #0008;
-      overflow:hidden;
-    }
-    .title{
-      flex:0 0 auto;
-      font-weight:1000;
-      font-size:clamp(16px,2vw,28px);
-      white-space:nowrap;
-    }
-    .pricebox{
-      flex:0 1 auto;
-      min-width:0;
-      display:flex;
-      align-items:center;
-      gap:5px;
-      background:linear-gradient(180deg,#17130a,#0d0c08);
-      border:1px solid #745c18;
-      border-radius:13px;
-      padding:3px 7px;
-      box-shadow:inset 0 0 18px #b47b0022;
-    }
-    .pricebox label{
-      font-weight:900;
-      color:#ffe59a;
-      font-size:clamp(13px,1.5vw,20px);
-      white-space:nowrap;
-    }
-    .pricebox input{
-      width:clamp(58px,7vw,90px);
-      min-width:0;
-      background:#090b0e;
-      border:1px solid #705a1a;
-      color:#fff;
-      border-radius:9px;
-      padding:5px 4px;
-      font-size:clamp(17px,2vw,26px);
-      font-weight:1000;
-      text-align:center;
-    }
-    .spacer{flex:1 1 10px;min-width:0}
-    .topbtn{
-      flex:0 0 auto;
-      height:clamp(38px,7vh,52px);
-      padding:0 clamp(8px,1.2vw,16px);
-      border-radius:13px;
-      background:linear-gradient(#30353d,#171a1f);
-      border:1px solid #4b535e;
-      font-weight:900;
-      font-size:clamp(12px,1.35vw,18px);
-      white-space:nowrap;
-    }
-    .topbtn.active{
-      outline:2px solid #5cff89;
-      background:linear-gradient(#216b39,#12351f);
-      box-shadow:0 0 16px #35ff6d55;
-    }
-    .topbtn.danger{
-      border-color:#8b3131;
-      background:linear-gradient(#552323,#251011);
-    }
-
-    .boards{
-      min-width:0;
-      min-height:0;
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      gap:7px;
-      overflow:hidden;
-    }
-    .panel{
-      --accent:#fff;
-      --glow:#fff3;
-      --shade1:#101010;
-      --shade2:#050505;
-      position:relative;
-      min-width:0;
-      min-height:0;
-      border-radius:22px;
-      padding:clamp(7px,1vw,14px);
-      display:grid;
-      grid-template-rows:auto auto minmax(0,1fr) auto auto;
-      gap:clamp(4px,.7vh,9px);
-      overflow:hidden;
-      isolation:isolate;
-      border:2px solid var(--accent);
-      background:
-        radial-gradient(circle at 50% 0%,rgba(255,255,255,.045),transparent 35%),
-        linear-gradient(180deg,var(--shade1),var(--shade2));
-      box-shadow:
-        0 0 22px var(--glow),
-        inset 0 0 42px rgba(0,0,0,.62);
-    }
-    /* Brush-circle / dragon-watermark layer: closer to the original preview */
-    .panel::before{
-      content:"龍";
-      position:absolute;
-      z-index:-1;
-      left:-3%;
-      bottom:-18%;
-      width:70%;
-      height:110%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-family:"STKaiti","KaiTi","Noto Serif TC",serif;
-      font-size:clamp(150px,24vw,390px);
-      font-weight:900;
-      line-height:1;
-      color:var(--accent);
-      opacity:.055;
-      transform:rotate(-13deg);
-      filter:blur(.2px);
-      text-shadow:
-        0 0 22px var(--accent),
-        0 0 55px var(--accent);
-      pointer-events:none;
-    }
-    .panel::after{
-      content:"";
-      position:absolute;
-      z-index:-1;
-      inset:8% 8%;
-      border-radius:50%;
-      border:clamp(10px,1.3vw,20px) solid var(--accent);
-      opacity:.035;
-      transform:rotate(-18deg) scale(1.08,.78);
-      box-shadow:0 0 36px var(--accent);
-      pointer-events:none;
-    }
-    .left{
-      --accent:#1687ff;
-      --glow:#005ccf88;
-      --shade1:#071426;
-      --shade2:#020913;
-    }
-    .front{
-      --accent:#d9aa32;
-      --glow:#b77d0088;
-      --shade1:#241a05;
-      --shade2:#0d0902;
-    }
-    .right{
-      --accent:#ff3b3b;
-      --glow:#c1000088;
-      --shade1:#290708;
-      --shade2:#100203;
-    }
-    .name{
-      min-width:0;
-      font-family:"STKaiti","KaiTi","Noto Serif TC",serif;
-      font-size:clamp(38px,5.8vw,78px);
-      font-weight:1000;
-      line-height:.95;
-      color:var(--accent);
-      text-shadow:0 0 20px var(--glow);
-      text-align:center;
-    }
-    .row{
-      min-width:0;
-      display:grid;
-      grid-template-columns:minmax(58px,26%) minmax(25px,1fr) minmax(40px,14%) minmax(40px,14%);
-      align-items:center;
-      gap:clamp(4px,.6vw,8px);
-      margin-top:4px;
-    }
-    .row .label{
-      height:clamp(37px,7vh,50px);
-      min-width:0;
-      border:1px solid var(--accent);
-      border-radius:24px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-weight:900;
-      font-size:clamp(13px,1.5vw,20px);
-      background:#0d1015dd;
-      white-space:nowrap;
-    }
-    .count{
-      min-width:0;
-      font-size:clamp(20px,2.7vw,34px);
-      font-weight:1000;
-      text-align:center;
-    }
-    .mini{
-      min-width:0;
-      height:clamp(37px,7vh,50px);
-      border-radius:13px;
-      font-size:clamp(24px,3vw,38px);
-      font-weight:1000;
-      background:linear-gradient(#39414b,#171a1f);
-      border:1px solid #58616e;
-      box-shadow:inset 0 1px 0 #ffffff22;
-    }
-    .amount{
-      min-width:0;
-      min-height:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:clamp(46px,7.3vw,100px);
-      font-weight:1000;
-      text-shadow:0 0 24px var(--glow);
-      letter-spacing:1px;
-    }
-    .bigrow{
-      min-width:0;
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:7px;
-    }
-    .big{
-      min-width:0;
-      height:clamp(46px,8vh,70px);
-      border-radius:15px;
-      font-size:clamp(28px,4vw,44px);
-      font-weight:1000;
-      border:1px solid #565e68;
-      background:linear-gradient(#3a4048,#1b1e23);
-    }
-    .big.plus{background:linear-gradient(#1687ff,#0b4b90)}
-    .front .big.plus{background:linear-gradient(#d6a52e,#7c5510)}
-    .right .big.plus{background:linear-gradient(#ff4242,#932020)}
-    .clear-one{
-      min-width:0;
-      height:clamp(30px,5vh,42px);
-      border-radius:11px;
-      font-size:clamp(11px,1.25vw,16px);
-      font-weight:900;
-      background:linear-gradient(#252a31,#11151a);
-      border:1px solid var(--accent);
-      color:#fff;
-      opacity:.96;
-    }
-
-    .footer{
-      min-width:0;
-      display:grid;
-      grid-template-columns:minmax(0,1.65fr) minmax(0,.85fr);
-      gap:7px;
-      overflow:hidden;
-    }
-    .summary{
-      min-width:0;
-      border-radius:18px;
-      border:1px solid #394049;
-      background:linear-gradient(#11151a,#0a0d11);
-      display:grid;
-      grid-template-columns:repeat(3,minmax(0,1fr));
-      align-items:center;
-      padding:5px 10px;
-    }
-    .sumitem{min-width:0;text-align:center}
-    .sumitem .sname{
-      font-weight:900;
-      color:#aeb7c1;
-      font-size:clamp(11px,1.35vw,18px);
-    }
-    .sumitem .sval{
-      font-size:clamp(20px,2.8vw,38px);
-      font-weight:1000;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .grand{
-      min-width:0;
-      border-radius:18px;
-      border:1px solid #206f36;
-      background:
-        radial-gradient(circle at 50% 50%,#164a26,#09140d 68%);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      box-shadow:inset 0 0 28px #2aff5822;
-    }
-    .grand small{
-      font-weight:900;
-      color:#bdf8c8;
-      font-size:clamp(11px,1.2vw,17px);
-    }
-    .grand strong{
-      max-width:100%;
-      font-size:clamp(27px,4vw,52px);
-      line-height:1;
-      color:#77ff8d;
-      text-shadow:0 0 18px #42ff6e88;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .rotateHint{
-      display:none;
-      position:fixed;
-      inset:0;
-      z-index:99;
-      background:#05070a;
-      color:#fff;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:30px;
-      font-size:28px;
-      font-weight:900;
-    }
-
-    @media (orientation:portrait){
-      .rotateHint{display:flex}
-    }
-
-    /* iPhone landscape / short-height tuning */
-    @media (max-height:500px){
-      .app{
-        grid-template-rows:52px minmax(0,1fr) 62px;
-        gap:5px;
-        padding:
-          max(4px,var(--safe-t))
-          max(6px,var(--safe-r))
-          max(4px,var(--safe-b))
-          max(6px,var(--safe-l));
-      }
-      .topbar{border-radius:15px;padding:4px 7px}
-      .pricebox{padding:2px 5px}
-      .topbtn{height:38px}
-      .panel{border-radius:17px;padding:6px;gap:3px}
-      .name{font-size:34px}
-      .row{margin-top:2px}
-      .row .label,.mini{height:32px}
-      .amount{font-size:42px}
-      .big{height:38px}
-      .clear-one{height:27px}
-      .footer{gap:5px}
-      .summary,.grand{border-radius:14px}
-    }
-
-    /* Very narrow landscape screens: hide long labels before allowing any overflow */
-    @media (max-width:750px){
-      .title{font-size:15px}
-      .topbtn{padding:0 7px;font-size:11px}
-      .pricebox label{font-size:12px}
-      .pricebox input{width:54px;font-size:16px}
-    }
+    button{cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+    button:focus-visible,input:focus-visible{outline:2px solid #fff4bd;outline-offset:2px}
+    .app{position:relative;isolation:isolate;display:grid;grid-template-rows:49px minmax(0,1fr) 53px;gap:5px;width:100%;height:100dvh;padding:max(5px,var(--safe-t)) max(5px,var(--safe-r)) max(5px,var(--safe-b)) max(5px,var(--safe-l));overflow:hidden;background:#08090e}
+    .app::before{content:"";position:absolute;inset:0;z-index:-2;background:url("./assets/dragon-triptych.webp") center center/100% 100% no-repeat}
+    .app::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.20),rgba(0,0,0,.12) 30%,rgba(0,0,0,.16) 55%,rgba(0,0,0,.30))}
+    .metal{border:1px solid #9b742d;box-shadow:inset 0 1px 0 #fff1aa65,inset 0 -2px 7px #000,0 2px 10px #000a;background:linear-gradient(160deg,#47351c 0%,#100e10 27%,#272019 58%,#0d0d10 100%)}
+    .topbar{display:flex;align-items:center;gap:5px;min-width:0;padding:3px 6px;border-radius:12px;background:linear-gradient(180deg,#2c210fdc,#09090be9);border:1px solid #b28a42;box-shadow:inset 0 1px #f9dfa673,0 2px 13px #000c}
+    .brand{flex:0 0 auto;white-space:nowrap;padding:0 6px 0 2px;color:#ffe3a0;font-family:"Noto Serif TC","STKaiti",serif;font-size:clamp(14px,1.75vw,23px);font-weight:900;letter-spacing:.08em;text-shadow:0 2px 1px #000,0 0 12px #d99127}
+    .price{display:flex;align-items:center;gap:3px;min-width:0;height:37px;padding:2px 5px;border:1px solid #97743b;border-radius:8px;background:#0d0a0bdd;box-shadow:inset 0 0 9px #bc7f2633}
+    .price label{white-space:nowrap;color:#ffe0a0;font-size:clamp(11px,1.15vw,15px);font-weight:900}
+    .price input{width:clamp(42px,5vw,73px);min-width:0;height:29px;padding:0 2px;border:1px solid #b58940;border-radius:5px;background:#09090c;color:#fff5d6;text-align:center;font-weight:900;font-size:clamp(15px,1.8vw,22px);appearance:textfield;-moz-appearance:textfield}
+    .price input::-webkit-outer-spin-button,.price input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .selfdraw{display:flex;align-items:center;gap:3px;flex:0 0 auto;height:37px;padding:2px 3px 2px 7px;border:1px solid #d6aa5a;border-radius:8px;background:linear-gradient(135deg,#5b3a17,#151014 58%,#3c2414);box-shadow:inset 0 1px #ffe3a375,0 0 10px #d58a2a55}
+    .selfdraw label,.selfdraw-unit{white-space:nowrap;color:#ffe2a5;font-size:clamp(11px,1.15vw,15px);font-weight:900}
+    .selfdraw input{width:34px;min-width:0;height:29px;padding:0 2px;border:1px solid #d5a04c;border-radius:5px;background:#09090c;color:#fff5d6;text-align:center;font-size:clamp(15px,1.8vw,21px);font-weight:1000;appearance:textfield;-moz-appearance:textfield}
+    .selfdraw input::-webkit-outer-spin-button,.selfdraw input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    .drawbtn{height:29px;padding:0 8px;border:1px solid #e2b968;border-radius:5px;background:linear-gradient(#ac6d25,#593613);color:#fff7df;font-size:clamp(11px,1.1vw,14px);font-weight:1000;white-space:nowrap;text-shadow:0 1px 2px #000}
+    .top-spacer{flex:1;min-width:0}
+    .topbtn{flex:0 0 auto;height:36px;min-width:0;padding:0 clamp(7px,.9vw,13px);border-radius:8px;color:#fff0ca;font-size:clamp(11px,1.15vw,15px);font-weight:900;white-space:nowrap}
+    .topbtn[aria-pressed="true"]{border-color:#a8d989;color:#e9ffd8;box-shadow:inset 0 1px #e2ffb681,0 0 10px #96e86655;background:linear-gradient(#315336,#11251b)}
+    .topbtn.danger{border-color:#aa5d42;background:linear-gradient(#54291e,#1a0d0d)}
+    .boards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0;min-height:0}
+    .panel{--accent:#84c8ff;--edge:#3a7db1;--shine:#0b65c2;position:relative;display:grid;grid-template-rows:28px minmax(34px,1fr) minmax(34px,1fr) minmax(43px,1.25fr) 32px 25px;gap:3px;min-width:0;min-height:0;padding:5px 6px 6px;border-radius:14px;border:2px solid #bc904b;background:linear-gradient(180deg,#080a1050 0%,#06080d83 38%,#050609d9 100%);box-shadow:inset 0 0 0 1px #2c2319,inset 0 0 22px var(--shine),0 0 11px #000b;overflow:hidden}
+    .panel::before{content:"";position:absolute;inset:3px;z-index:-1;border:1px solid #e9ba6955;border-radius:10px;pointer-events:none}
+    .panel::after{content:"";position:absolute;left:15%;right:15%;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 12px var(--accent);pointer-events:none}
+    .panel.front{--accent:#ffe093;--edge:#ac782d;--shine:#ae671c}
+    .panel.right{--accent:#ffaaa3;--edge:#b34843;--shine:#bb2525}
+    .player-head{display:flex;align-items:center;justify-content:center;min-width:0;gap:8px;background:linear-gradient(90deg,transparent,#0008 23%,#0008 77%,transparent)}
+    .player-head .line{height:1px;max-width:54px;flex:1;background:linear-gradient(90deg,transparent,var(--accent))}
+    .player-head .line:last-child{transform:rotate(180deg)}
+    .player-name{font-family:"Noto Serif TC","STKaiti",serif;font-weight:900;font-size:clamp(19px,2.5vw,30px);line-height:1;letter-spacing:.18em;color:var(--accent);text-shadow:0 2px 2px #000,0 0 12px var(--accent),0 0 20px var(--shine)}
+    .count-row{display:grid;grid-template-columns:minmax(0,1fr) 38px 38px;align-items:stretch;gap:4px;min-width:0;min-height:0}
+    .count-face{display:flex;align-items:center;justify-content:space-between;gap:3px;min-width:0;padding:0 5px 0 7px;border-radius:7px;border:1px solid #a6814c;background:linear-gradient(135deg,#110f11e8,#080a0ce8);box-shadow:inset 0 0 11px var(--shine)}
+    .count-face .label{font-size:clamp(11px,1.25vw,15px);font-weight:900;white-space:nowrap;color:#f4e7d0}
+    .count-face output{min-width:1.3ch;max-width:55%;overflow:hidden;text-align:right;font-size:clamp(20px,2.5vw,29px);line-height:1;font-weight:1000;color:var(--accent);text-shadow:0 0 10px var(--shine)}
+    .step{min-width:0;border:1px solid #bd9559;border-radius:7px;color:#ffefcc;font-size:clamp(24px,3vw,34px);line-height:1;font-weight:700;background:linear-gradient(#4a3b28,#161419 60%,#33271e);box-shadow:inset 0 1px #ffdda65c,0 2px 3px #0008}
+    .step.plus{border-color:var(--edge);color:var(--accent);background:linear-gradient(#343b40,#0b1016 60%,#20252a);text-shadow:0 0 8px var(--shine)}
+    .amount{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden;border-radius:9px;background:radial-gradient(ellipse at center,#0009,#0002 68%,transparent);color:#fff7dd;font-size:clamp(37px,6.3vw,82px);font-weight:1000;line-height:1;letter-spacing:-.055em;font-variant-numeric:tabular-nums;text-shadow:0 2px 2px #000,0 0 10px var(--accent),0 0 20px var(--shine)}
+    .quick-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;min-width:0;min-height:0}
+    .quick{min-width:0;border-radius:7px;border:1px solid #b28c59;background:linear-gradient(#4a3b29,#171317);color:#fff0d0;font-size:clamp(19px,2.6vw,29px);line-height:1;font-weight:900;box-shadow:inset 0 1px #ffeba661,0 2px 4px #000}
+    .quick.plus{border-color:var(--edge);background:linear-gradient(color-mix(in srgb,var(--edge) 70%,#48413b),#15151a);color:#fff}
+    .clear-one{min-width:0;min-height:0;border-radius:6px;border:1px solid #b18b53;background:linear-gradient(#29231d,#0d0b0e);color:#ffdda5;font-size:clamp(11px,1.1vw,14px);font-weight:900;letter-spacing:.07em}
+    .footer{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,.8fr);gap:5px;min-width:0;min-height:0}
+    .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;min-width:0;padding:3px;border-radius:11px;background:linear-gradient(#2a2018ed,#09090ceb);border:1px solid #bc904b;box-shadow:inset 0 1px #f6d69a75,0 2px 9px #000b}
+    .sumitem{min-width:0;text-align:center;border-right:1px solid #b4874a73}
+    .sumitem:last-child{border-right:0}
+    .sname{display:block;color:#d5bd93;font-size:clamp(10px,1vw,13px);font-weight:900;line-height:1.1}
+    .sval{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#fff5d8;font-size:clamp(18px,2.4vw,30px);font-weight:1000;line-height:1.1}
+    .grand{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;overflow:hidden;border-radius:11px;border:1px solid #e3b560;background:radial-gradient(ellipse at top,#84602d,#20160c 48%,#0a0909);box-shadow:inset 0 1px #ffe5a4,0 0 13px #daa14466}
+    .grand small{color:#ffe2a1;font-size:clamp(10px,1.15vw,15px);font-weight:900;line-height:1.1}
+    .grand strong{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff7d5;font-size:clamp(20px,3.3vw,42px);line-height:1.05;font-weight:1000;text-shadow:0 0 10px #ffd16a,0 0 20px #d48a22}
+    .rotate-hint{display:none;position:fixed;inset:0;z-index:10;align-items:center;justify-content:center;padding:28px;text-align:center;background:#09090c;color:#ffe0a1;font-size:22px;font-weight:900}
+    .toast{position:fixed;z-index:20;left:50%;bottom:calc(58px + var(--safe-b));transform:translateX(-50%);max-width:80%;padding:7px 14px;border:1px solid #caa363;border-radius:9px;background:#121014f2;box-shadow:0 4px 18px #000;color:#fff3d5;font-size:12px;text-align:center;pointer-events:none}
+    .toast[hidden]{display:none}
+    @media (orientation:portrait){.rotate-hint{display:flex}}
+    @media (max-height:500px) and (orientation:landscape){.panel{grid-template-rows:minmax(62px,1.3fr) minmax(34px,.65fr) minmax(34px,.65fr) minmax(45px,1fr) 25px}.player-head{align-items:flex-end;padding-bottom:4px}.quick-row{display:none}}
+    @media (max-height:340px) and (orientation:landscape){.app{grid-template-rows:41px minmax(0,1fr) 43px;gap:3px}.topbar{padding:2px 4px}.price{height:32px}.price input{height:25px}.topbtn{height:31px}.panel{grid-template-rows:minmax(40px,1fr) minmax(27px,.7fr) minmax(27px,.7fr) minmax(35px,1fr) 22px;gap:2px;padding:3px 5px}.player-name{font-size:18px}.count-row{grid-template-columns:minmax(0,1fr) 31px 31px;gap:3px}.amount{font-size:clamp(32px,5vw,62px)}}
+    @media (max-width:740px) and (orientation:landscape){.brand{font-size:13px;padding-right:2px}.topbar{gap:3px;padding-left:4px;padding-right:4px}.topbtn{padding:0 5px;font-size:10px}.price{padding:2px 3px}.price label{font-size:10px}.price input{width:38px;font-size:14px}.selfdraw{gap:2px;padding-left:4px;padding-right:2px}.selfdraw label,.selfdraw-unit{font-size:10px}.selfdraw input{width:26px;font-size:14px}.drawbtn{padding:0 4px;font-size:10px}.count-row{grid-template-columns:minmax(0,1fr) 30px 30px;gap:3px}.count-face{padding:0 3px}.count-face .label{font-size:10px}.step{font-size:21px}.panel{padding-left:4px;padding-right:4px}.amount{font-size:clamp(29px,5.5vw,45px)}}
+    @media (prefers-reduced-motion:no-preference){button{transition:filter .12s,transform .12s}button:active{filter:brightness(1.3);transform:translateY(1px)}}
   </style>
-
 </head>
 <body>
-  <div class="rotateHint">請將手機旋轉為橫向使用記分板</div>
-
-  <main class="app">
+  <main class="app" aria-label="龍紋橫向記分板">
     <header class="topbar">
-      <div class="title">記分板</div>
-
-      <div class="pricebox">
-        <label>一底</label>
-        <input id="basePrice" type="number" min="0" step="50" value="200">
-      </div>
-
-      <div class="pricebox">
-        <label>一台</label>
-        <input id="taiPrice" type="number" min="0" step="10" value="50">
-      </div>
-
-      <div class="spacer"></div>
-
-      <button class="topbtn" id="wakeBtn">螢幕常亮</button>
-      <button class="topbtn" id="fsBtn">全螢幕</button>
-      <button class="topbtn danger" id="resetBtn">全部重置</button>
+      <div class="brand">龍紋記分板</div>
+      <div class="price"><label for="basePrice">一底</label><input id="basePrice" type="number" inputmode="numeric" min="0" step="1" value="200" aria-label="一底金額"></div>
+      <div class="price"><label for="taiPrice">一台</label><input id="taiPrice" type="number" inputmode="numeric" min="0" step="1" value="50" aria-label="一台金額"></div>
+      <div class="selfdraw"><label for="selfDrawTai">自摸</label><input id="selfDrawTai" type="number" inputmode="numeric" min="0" max="99" step="1" value="4" aria-label="自摸台數"><span class="selfdraw-unit">台</span><button class="drawbtn" id="selfDrawBtn" type="button" aria-label="自摸：左前右各加一底和設定台數">全員＋</button></div>
+      <div class="top-spacer"></div>
+      <button class="topbtn metal" id="wakeBtn" type="button" aria-pressed="false">常亮</button>
+      <button class="topbtn metal" id="fsBtn" type="button" aria-pressed="false">全螢幕</button>
+      <button class="topbtn metal danger" id="resetBtn" type="button">全部清除</button>
     </header>
-
-    <section class="boards">
-      <article class="panel left" data-player="left">
-        <div class="name">左</div>
-        <div>
-          <div class="row">
-            <div class="label">底數</div>
-            <div class="count" data-kind="base">0</div>
-            <button class="mini" data-action="dec-base">−</button>
-            <button class="mini" data-action="inc-base">＋</button>
-          </div>
-          <div class="row">
-            <div class="label">台數</div>
-            <div class="count" data-kind="tai">0</div>
-            <button class="mini" data-action="dec-tai">−</button>
-            <button class="mini" data-action="inc-tai">＋</button>
-          </div>
-        </div>
-        <div class="amount" data-role="amount">0</div>
-        <div class="bigrow">
-          <button class="big" data-action="minus-round">−</button>
-          <button class="big plus" data-action="plus-round">＋</button>
-        </div>
-        <button class="clear-one" data-action="clear-player">單獨清除</button>
-      </article>
-
-      <article class="panel front" data-player="front">
-        <div class="name">前</div>
-        <div>
-          <div class="row">
-            <div class="label">底數</div>
-            <div class="count" data-kind="base">0</div>
-            <button class="mini" data-action="dec-base">−</button>
-            <button class="mini" data-action="inc-base">＋</button>
-          </div>
-          <div class="row">
-            <div class="label">台數</div>
-            <div class="count" data-kind="tai">0</div>
-            <button class="mini" data-action="dec-tai">−</button>
-            <button class="mini" data-action="inc-tai">＋</button>
-          </div>
-        </div>
-        <div class="amount" data-role="amount">0</div>
-        <div class="bigrow">
-          <button class="big" data-action="minus-round">−</button>
-          <button class="big plus" data-action="plus-round">＋</button>
-        </div>
-        <button class="clear-one" data-action="clear-player">單獨清除</button>
-      </article>
-
-      <article class="panel right" data-player="right">
-        <div class="name">右</div>
-        <div>
-          <div class="row">
-            <div class="label">底數</div>
-            <div class="count" data-kind="base">0</div>
-            <button class="mini" data-action="dec-base">−</button>
-            <button class="mini" data-action="inc-base">＋</button>
-          </div>
-          <div class="row">
-            <div class="label">台數</div>
-            <div class="count" data-kind="tai">0</div>
-            <button class="mini" data-action="dec-tai">−</button>
-            <button class="mini" data-action="inc-tai">＋</button>
-          </div>
-        </div>
-        <div class="amount" data-role="amount">0</div>
-        <div class="bigrow">
-          <button class="big" data-action="minus-round">−</button>
-          <button class="big plus" data-action="plus-round">＋</button>
-        </div>
-        <button class="clear-one" data-action="clear-player">單獨清除</button>
-      </article>
+    <section class="boards" aria-label="三方記分">
+      <section class="panel left" data-player="left" aria-label="左方記分">
+        <div class="player-head"><span class="line"></span><span class="player-name">左</span><span class="line"></span></div>
+        <div class="count-row"><div class="count-face"><span class="label">底數</span><output data-kind="base">0</output></div><button class="step" data-action="dec-base" type="button" aria-label="左 底數減一">−</button><button class="step plus" data-action="inc-base" type="button" aria-label="左 底數加一">＋</button></div>
+        <div class="count-row"><div class="count-face"><span class="label">台數</span><output data-kind="tai">0</output></div><button class="step" data-action="dec-tai" type="button" aria-label="左 台數減一">−</button><button class="step plus" data-action="inc-tai" type="button" aria-label="左 台數加一">＋</button></div>
+        <output class="amount" data-role="amount" aria-label="左 金額">0</output>
+        <div class="quick-row"><button class="quick" data-action="minus-round" type="button" aria-label="左 快速減一底">−</button><button class="quick plus" data-action="plus-round" type="button" aria-label="左 快速加一底">＋</button></div>
+        <button class="clear-one" data-action="clear-player" type="button">左・單獨清除</button>
+      </section>
+      <section class="panel front" data-player="front" aria-label="前方記分">
+        <div class="player-head"><span class="line"></span><span class="player-name">前</span><span class="line"></span></div>
+        <div class="count-row"><div class="count-face"><span class="label">底數</span><output data-kind="base">0</output></div><button class="step" data-action="dec-base" type="button" aria-label="前 底數減一">−</button><button class="step plus" data-action="inc-base" type="button" aria-label="前 底數加一">＋</button></div>
+        <div class="count-row"><div class="count-face"><span class="label">台數</span><output data-kind="tai">0</output></div><button class="step" data-action="dec-tai" type="button" aria-label="前 台數減一">−</button><button class="step plus" data-action="inc-tai" type="button" aria-label="前 台數加一">＋</button></div>
+        <output class="amount" data-role="amount" aria-label="前 金額">0</output>
+        <div class="quick-row"><button class="quick" data-action="minus-round" type="button" aria-label="前 快速減一底">−</button><button class="quick plus" data-action="plus-round" type="button" aria-label="前 快速加一底">＋</button></div>
+        <button class="clear-one" data-action="clear-player" type="button">前・單獨清除</button>
+      </section>
+      <section class="panel right" data-player="right" aria-label="右方記分">
+        <div class="player-head"><span class="line"></span><span class="player-name">右</span><span class="line"></span></div>
+        <div class="count-row"><div class="count-face"><span class="label">底數</span><output data-kind="base">0</output></div><button class="step" data-action="dec-base" type="button" aria-label="右 底數減一">−</button><button class="step plus" data-action="inc-base" type="button" aria-label="右 底數加一">＋</button></div>
+        <div class="count-row"><div class="count-face"><span class="label">台數</span><output data-kind="tai">0</output></div><button class="step" data-action="dec-tai" type="button" aria-label="右 台數減一">−</button><button class="step plus" data-action="inc-tai" type="button" aria-label="右 台數加一">＋</button></div>
+        <output class="amount" data-role="amount" aria-label="右 金額">0</output>
+        <div class="quick-row"><button class="quick" data-action="minus-round" type="button" aria-label="右 快速減一底">−</button><button class="quick plus" data-action="plus-round" type="button" aria-label="右 快速加一底">＋</button></div>
+        <button class="clear-one" data-action="clear-player" type="button">右・單獨清除</button>
+      </section>
     </section>
-
     <footer class="footer">
-      <div class="summary">
-        <div class="sumitem"><div class="sname">左</div><div class="sval" id="sum-left">0</div></div>
-        <div class="sumitem"><div class="sname">前</div><div class="sval" id="sum-front">0</div></div>
-        <div class="sumitem"><div class="sname">右</div><div class="sval" id="sum-right">0</div></div>
-      </div>
+      <div class="summary"><div class="sumitem"><span class="sname">左</span><strong class="sval" id="sum-left">0</strong></div><div class="sumitem"><span class="sname">前</span><strong class="sval" id="sum-front">0</strong></div><div class="sumitem"><span class="sname">右</span><strong class="sval" id="sum-right">0</strong></div></div>
       <div class="grand"><small>總計</small><strong id="grandTotal">0</strong></div>
     </footer>
   </main>
-
-<script>
-const state = {
-  left:{base:0,tai:0},
-  front:{base:0,tai:0},
-  right:{base:0,tai:0}
-};
-
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const money = n => Number(n||0).toLocaleString('zh-TW');
-
-function getPrices(){
-  return {
-    base: Number($('#basePrice').value || 0),
-    tai: Number($('#taiPrice').value || 0)
-  }
-}
-function amountFor(p){
-  const price = getPrices();
-  return state[p].base * price.base + state[p].tai * price.tai;
-}
-function render(){
-  $$('.panel').forEach(panel=>{
-    const p = panel.dataset.player;
-    panel.querySelector('[data-kind="base"]').textContent = state[p].base;
-    panel.querySelector('[data-kind="tai"]').textContent = state[p].tai;
-    panel.querySelector('[data-role="amount"]').textContent = money(amountFor(p));
-  });
-  ['left','front','right'].forEach(p=>{
-    $('#sum-'+p).textContent = money(amountFor(p));
-  });
-  $('#grandTotal').textContent = money(['left','front','right'].reduce((a,p)=>a+amountFor(p),0));
-  localStorage.setItem('scoreboard-state', JSON.stringify({
-    state,
-    basePrice:$('#basePrice').value,
-    taiPrice:$('#taiPrice').value
-  }));
-}
-function load(){
-  try{
-    const x = JSON.parse(localStorage.getItem('scoreboard-state')||'null');
-    if(!x) return;
-    Object.assign(state.left,x.state?.left||{});
-    Object.assign(state.front,x.state?.front||{});
-    Object.assign(state.right,x.state?.right||{});
-    if(x.basePrice!=null) $('#basePrice').value=x.basePrice;
-    if(x.taiPrice!=null) $('#taiPrice').value=x.taiPrice;
-  }catch(e){}
-}
-
-$$('.panel').forEach(panel=>{
-  panel.addEventListener('click',e=>{
-    const btn=e.target.closest('button[data-action]');
-    if(!btn) return;
-    const p=panel.dataset.player;
-    const a=btn.dataset.action;
-    if(a==='inc-base') state[p].base++;
-    if(a==='dec-base') state[p].base=Math.max(0,state[p].base-1);
-    if(a==='inc-tai') state[p].tai++;
-    if(a==='dec-tai') state[p].tai=Math.max(0,state[p].tai-1);
-
-    // 大按鈕：一局快速加減一底
-    if(a==='plus-round') state[p].base++;
-    if(a==='minus-round') state[p].base=Math.max(0,state[p].base-1);
-
-    if(a==='clear-player'){
-      const label = p==='left' ? '左' : p==='front' ? '前' : '右';
-      if(confirm(`確定要只清除「${label}」嗎？\n其他兩家不會被清除。`)){
-        state[p].base = 0;
-        state[p].tai = 0;
-      }
-    }
-
-    render();
-    ensureImmersive();
-  });
-});
-
-$('#basePrice').addEventListener('input',render);
-$('#taiPrice').addEventListener('input',render);
-
-$('#resetBtn').addEventListener('click',()=>{
-  if(confirm('確定要全部歸零嗎？')){
-    Object.values(state).forEach(x=>{x.base=0;x.tai=0});
-    render();
-  }
-  ensureImmersive();
-});
-
-// fullscreen
-async function enterFullscreen(){
-  try{
-    if(!document.fullscreenElement && document.documentElement.requestFullscreen){
-      await document.documentElement.requestFullscreen();
-    }
-  }catch(e){}
-  try{
-    if(screen.orientation && screen.orientation.lock){
-      await screen.orientation.lock('landscape');
-    }
-  }catch(e){}
-}
-async function exitFullscreen(){
-  try{
-    if(document.fullscreenElement) await document.exitFullscreen();
-  }catch(e){}
-}
-$('#fsBtn').addEventListener('click',async()=>{
-  if(document.fullscreenElement) await exitFullscreen();
-  else await enterFullscreen();
-  ensureImmersive();
-});
-document.addEventListener('fullscreenchange',()=>{
-  $('#fsBtn').classList.toggle('active',!!document.fullscreenElement);
-});
-
-// wake lock
-let wakeLock=null;
-let wakeDesired=true;
-
-async function requestWakeLock(){
-  if(!('wakeLock' in navigator)) return;
-  try{
-    wakeLock=await navigator.wakeLock.request('screen');
-    $('#wakeBtn').classList.add('active');
-    $('#wakeBtn').textContent='常亮 ON';
-    wakeLock.addEventListener('release',()=>{
-      $('#wakeBtn').classList.remove('active');
-      $('#wakeBtn').textContent='螢幕常亮';
-    });
-  }catch(e){}
-}
-async function releaseWakeLock(){
-  wakeDesired=false;
-  try{ if(wakeLock) await wakeLock.release(); }catch(e){}
-  wakeLock=null;
-  $('#wakeBtn').classList.remove('active');
-  $('#wakeBtn').textContent='常亮 OFF';
-}
-$('#wakeBtn').addEventListener('click',async()=>{
-  if(wakeDesired && wakeLock){
-    await releaseWakeLock();
-  }else{
-    wakeDesired=true;
-    await requestWakeLock();
-  }
-});
-document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible' && wakeDesired) requestWakeLock();
-});
-
-async function ensureImmersive(){
-  if(wakeDesired) requestWakeLock();
-  // browsers generally require a user gesture for fullscreen/orientation lock,
-  // so the first interaction attempts it automatically.
-  if(!document.fullscreenElement) await enterFullscreen();
-}
-
-document.addEventListener('pointerdown',()=>{
-  ensureImmersive();
-},{once:true});
-
-load();
-render();
-requestWakeLock();
-
-if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-}
-</script>
+  <div class="rotate-hint" role="status">請將 iPhone 橫向使用<br>即可看到完整三欄記分板</div>
+  <div class="toast" id="toast" role="status" hidden></div>
+  <script src="./scoreboard.js" defer></script>
 </body>
 </html>

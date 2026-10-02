@@ -1,53 +1,17 @@
-# 橫向手機記分板
+# 龍紋橫向記分板
 
-iPhone / Android 手機用的橫向記分板。
+適合 iPhone 橫向使用的三方記分板。左、前、右各有底數、台數加減與單獨清除；一底預設 200、一台預設 50，金額與總計即時更新。上方「自摸」可輸入台數，按「全員＋」會讓三方各加一底與指定台數。畫面包含藍龍、金龍、紅龍及金屬雕花背景。資料儲存在瀏覽器中。
 
-## 功能
-- 左 / 前 / 右 三區記分
-- 每區可單獨清除
-- 一底預設 200
-- 一台預設 50
-- 底數 / 台數加減
-- 自動計算各區金額
-- 自動計算總計
-- localStorage 自動保存
-- Screen Wake Lock 螢幕常亮
-- 全螢幕模式
-- 嘗試鎖定橫向
-- PWA，可加入 iPhone 主畫面
-- GitHub Pages 自動部署
+例如先設自摸 4 台按一次，再改為 5 台按一次，左、前、右各為 2 底 9 台；以預設價格計算每方 850，總計 2,550。
 
-## 第一次部署
+## 覆蓋 GitHub Pages
 
-1. 在 GitHub 建立一個新的 Public Repository，例如：
-   `mobile-scoreboard`
+將這個資料夾內的所有檔案與資料夾上傳至 `mobile-scoreboard` 儲存庫根目錄，取代同名檔案。務必保留 `assets/dragon-triptych.webp`、`scoreboard.js` 及 `.github/workflows/pages.yml` 的相對位置。上傳並提交後，等待 Actions 的部署完成。
 
-2. 將本專案內的所有檔案上傳到 Repository 的 `main` branch。
-   注意 `.github/workflows/pages.yml` 也要一起上傳。
+若 iPhone 主畫面仍顯示舊版，先從 Safari 開網站重新整理，再關閉並重新開啟主畫面 App。此版本的 Service Worker 對頁面採用網路優先，並在啟用新版時清除舊快取。
 
-3. 進入：
-   `Settings → Pages`
+「全螢幕」與「常亮」取決於瀏覽器和 iOS 版本的支援；若 Safari 不支援網頁全螢幕，可用「加入主畫面」方式開啟。
 
-4. 在 `Build and deployment` 的 Source 選擇：
-   `GitHub Actions`
+## 背景素材
 
-5. 到：
-   `Actions`
-   等 `Deploy Scoreboard to GitHub Pages` 完成。
-
-6. 網址通常會是：
-   `https://你的GitHub帳號.github.io/mobile-scoreboard/`
-
-## iPhone 建議使用方式
-
-1. 用 Safari 開啟 GitHub Pages 網址。
-2. 按 Safari 分享按鈕。
-3. 選「加入主畫面」。
-4. 從主畫面開啟記分板。
-5. 關閉 iPhone「直向鎖定」。
-6. 橫拿手機使用。
-
-## 注意
-
-iOS 對網頁強制鎖定橫向與全螢幕有系統限制，因此 PWA 會盡可能提供 App 化體驗，
-但實際是否能由網頁強制旋轉，仍依 iOS / Safari 版本而定。
+`assets/dragon-triptych.webp` 為這版記分板專用生成圖，提示詞摘要：三等分全景；左藍龍、中央金龍、右紅龍；黑曜石底、金屬雕花框、雲霧及光效；無文字、數字或按鈕。使用內建 imagegen 生成，並轉為 WebP 以縮小載入量。
