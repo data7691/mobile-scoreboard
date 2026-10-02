@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#090b0f" />
+  <link rel="manifest" href="manifest.json" />
+  <title>橫向手機記分板</title>
+  <style>
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;background:#05070a;color:#fff;font-family:system-ui,-apple-system,"Segoe UI","Noto Sans TC",sans-serif;overflow:hidden}
+    body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+    button,input{font:inherit}
+    button{border:none;color:#fff;cursor:pointer;touch-action:manipulation}
+    .app{width:100vw;height:100vh;display:grid;grid-template-rows:72px 1fr 92px;gap:8px;padding:8px;background:
+      radial-gradient(circle at 50% 0%,#222814 0,transparent 32%),
+      linear-gradient(180deg,#0d0f13,#05070a)}
+    .topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid #2c3138;border-radius:20px;background:linear-gradient(#171a1f,#0c0f13);box-shadow:inset 0 0 0 1px #000}
+    .title{font-weight:900;font-size:20px;white-space:nowrap}
+    .pricebox{display:flex;align-items:center;gap:6px;background:#11151a;border:1px solid #5f4d17;border-radius:14px;padding:4px 8px}
+    .pricebox label{font-weight:800;color:#ffe28a}
+    .pricebox input{width:88px;background:#090b0e;border:1px solid #66531a;color:#fff;border-radius:10px;padding:8px 10px;font-size:22px;font-weight:900;text-align:center}
+    .spacer{flex:1}
+    .topbtn{height:48px;padding:0 16px;border-radius:14px;background:linear-gradient(#2b3037,#171a1f);border:1px solid #444c57;font-weight:800;font-size:16px}
+    .topbtn.active{outline:2px solid #5cff89;background:linear-gradient(#1f5c33,#133822)}
+    .topbtn.danger{border-color:#7d2a2a;background:linear-gradient(#4a2020,#231112)}
+    .boards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;min-height:0}
+    .panel{position:relative;min-width:0;border-radius:22px;padding:14px;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:10px;overflow:hidden;border:2px solid var(--accent);background:
+      linear-gradient(180deg,var(--shade1),var(--shade2));box-shadow:0 0 24px var(--glow), inset 0 0 40px rgba(0,0,0,.55)}
+    .panel:before{content:"";position:absolute;inset:0;opacity:.13;background:
+      radial-gradient(circle at 20% 10%,#fff 0 1px,transparent 2px),
+      radial-gradient(circle at 75% 70%,#fff 0 1px,transparent 2px);background-size:40px 40px,54px 54px;pointer-events:none}
+    .left{--accent:#1687ff;--glow:#005ccf88;--shade1:#071426;--shade2:#020914}
+    .front{--accent:#d5a62d;--glow:#b77d0088;--shade1:#201704;--shade2:#0d0902}
+    .right{--accent:#ff3b3b;--glow:#c1000088;--shade1:#260708;--shade2:#100203}
+    .name{font-size:58px;font-weight:1000;line-height:1;color:var(--accent);text-shadow:0 0 18px var(--glow);text-align:center}
+    .row{display:grid;grid-template-columns:90px 1fr 60px 60px;align-items:center;gap:8px}
+    .row .label{height:48px;border:1px solid var(--accent);border-radius:24px;display:flex;align-items:center;justify-content:center;font-weight:900;background:#0d1015cc}
+    .count{font-size:28px;font-weight:1000;text-align:center}
+    .mini{height:48px;border-radius:14px;font-size:28px;font-weight:1000;background:linear-gradient(#343a42,#171a1f);border:1px solid #515a66}
+    .amount{display:flex;align-items:center;justify-content:center;font-size:clamp(52px,7vw,96px);font-weight:1000;text-shadow:0 0 24px var(--glow);letter-spacing:1px}
+    .bigrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .clear-one{height:42px;border-radius:12px;font-size:15px;font-weight:900;
+      background:linear-gradient(#242a31,#11151a);border:1px solid var(--accent);
+      color:#fff;opacity:.95}
+    .big{height:70px;border-radius:16px;font-size:38px;font-weight:1000;border:1px solid #565e68;background:linear-gradient(#3a4048,#1b1e23)}
+    .big.plus{background:linear-gradient(var(--accent),#0e4f92)}
+    .front .big.plus{background:linear-gradient(#d6a52e,#7c5510)}
+    .right .big.plus{background:linear-gradient(#ff4242,#932020)}
+    .footer{display:grid;grid-template-columns:1.2fr .8fr;gap:8px}
+    .summary{border-radius:18px;border:1px solid #394049;background:#0c0f13;display:grid;grid-template-columns:repeat(3,1fr);align-items:center;padding:8px 14px}
+    .sumitem{text-align:center}
+    .sumitem .sname{font-weight:900;color:#aeb7c1}
+    .sumitem .sval{font-size:24px;font-weight:1000}
+    .grand{border-radius:18px;border:1px solid #206f36;background:radial-gradient(circle at 50% 50%,#123d1e,#08120b);display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .grand small{font-weight:900;color:#bdf8c8}
+    .grand strong{font-size:38px;line-height:1;color:#77ff8d;text-shadow:0 0 18px #42ff6e88}
+    .rotateHint{display:none;position:fixed;inset:0;z-index:99;background:#05070a;color:#fff;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:28px;font-weight:900}
+    @media (orientation:portrait){
+      .rotateHint{display:flex}
+    }
+    @media (max-height:620px){
+      .app{grid-template-rows:62px 1fr 78px;padding:6px;gap:6px}
+      .topbar{padding:5px 8px}
+      .pricebox input{padding:5px;width:70px;font-size:19px}
+      .topbtn{height:42px;padding:0 12px}
+      .panel{padding:10px;gap:7px}
+      .name{font-size:44px}
+      .row{grid-template-columns:76px 1fr 50px 50px;gap:6px}
+      .row .label,.mini{height:40px}
+      .count{font-size:24px}
+      .big{height:58px}
+      .grand strong{font-size:32px}
+    }
+  </style>
+</head>
+<body>
+  <div class="rotateHint">請將手機旋轉為橫向使用記分板</div>
+
+  <main class="app">
+    <header class="topbar">
+      <div class="title">記分板</div>
+
+      <div class="pricebox">
+        <label>一底</label>
+        <input id="basePrice" type="number" min="0" step="50" value="200">
+      </div>
+
+      <div class="pricebox">
+        <label>一台</label>
+        <input id="taiPrice" type="number" min="0" step="10" value="50">
+      </div>
+
+      <div class="spacer"></div>
+
+      <button class="topbtn" id="wakeBtn">螢幕常亮</button>
+      <button class="topbtn" id="fsBtn">全螢幕</button>
+      <button class="topbtn danger" id="resetBtn">全部重置</button>
+    </header>
+
+    <section class="boards">
+      <article class="panel left" data-player="left">
+        <div class="name">左</div>
+        <div>
+          <div class="row">
+            <div class="label">底數</div>
+            <div class="count" data-kind="base">0</div>
+            <button class="mini" data-action="dec-base">−</button>
+            <button class="mini" data-action="inc-base">＋</button>
+          </div>
+          <div class="row">
+            <div class="label">台數</div>
+            <div class="count" data-kind="tai">0</div>
+            <button class="mini" data-action="dec-tai">−</button>
+            <button class="mini" data-action="inc-tai">＋</button>
+          </div>
+        </div>
+        <div class="amount" data-role="amount">0</div>
+        <div class="bigrow">
+          <button class="big" data-action="minus-round">−</button>
+          <button class="big plus" data-action="plus-round">＋</button>
+        </div>
+        <button class="clear-one" data-action="clear-player">單獨清除</button>
+      </article>
+
+      <article class="panel front" data-player="front">
+        <div class="name">前</div>
+        <div>
+          <div class="row">
+            <div class="label">底數</div>
+            <div class="count" data-kind="base">0</div>
+            <button class="mini" data-action="dec-base">−</button>
+            <button class="mini" data-action="inc-base">＋</button>
+          </div>
+          <div class="row">
+            <div class="label">台數</div>
+            <div class="count" data-kind="tai">0</div>
+            <button class="mini" data-action="dec-tai">−</button>
+            <button class="mini" data-action="inc-tai">＋</button>
+          </div>
+        </div>
+        <div class="amount" data-role="amount">0</div>
+        <div class="bigrow">
+          <button class="big" data-action="minus-round">−</button>
+          <button class="big plus" data-action="plus-round">＋</button>
+        </div>
+        <button class="clear-one" data-action="clear-player">單獨清除</button>
+      </article>
+
+      <article class="panel right" data-player="right">
+        <div class="name">右</div>
+        <div>
+          <div class="row">
+            <div class="label">底數</div>
+            <div class="count" data-kind="base">0</div>
+            <button class="mini" data-action="dec-base">−</button>
+            <button class="mini" data-action="inc-base">＋</button>
+          </div>
+          <div class="row">
+            <div class="label">台數</div>
+            <div class="count" data-kind="tai">0</div>
+            <button class="mini" data-action="dec-tai">−</button>
+            <button class="mini" data-action="inc-tai">＋</button>
+          </div>
+        </div>
+        <div class="amount" data-role="amount">0</div>
+        <div class="bigrow">
+          <button class="big" data-action="minus-round">−</button>
+          <button class="big plus" data-action="plus-round">＋</button>
+        </div>
+        <button class="clear-one" data-action="clear-player">單獨清除</button>
+      </article>
+    </section>
+
+    <footer class="footer">
+      <div class="summary">
+        <div class="sumitem"><div class="sname">左</div><div class="sval" id="sum-left">0</div></div>
+        <div class="sumitem"><div class="sname">前</div><div class="sval" id="sum-front">0</div></div>
+        <div class="sumitem"><div class="sname">右</div><div class="sval" id="sum-right">0</div></div>
+      </div>
+      <div class="grand"><small>總計</small><strong id="grandTotal">0</strong></div>
+    </footer>
+  </main>
+
+<script>
+const state = {
+  left:{base:0,tai:0},
+  front:{base:0,tai:0},
+  right:{base:0,tai:0}
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const money = n => Number(n||0).toLocaleString('zh-TW');
+
+function getPrices(){
+  return {
+    base: Number($('#basePrice').value || 0),
+    tai: Number($('#taiPrice').value || 0)
+  }
+}
+function amountFor(p){
+  const price = getPrices();
+  return state[p].base * price.base + state[p].tai * price.tai;
+}
+function render(){
+  $$('.panel').forEach(panel=>{
+    const p = panel.dataset.player;
+    panel.querySelector('[data-kind="base"]').textContent = state[p].base;
+    panel.querySelector('[data-kind="tai"]').textContent = state[p].tai;
+    panel.querySelector('[data-role="amount"]').textContent = money(amountFor(p));
+  });
+  ['left','front','right'].forEach(p=>{
+    $('#sum-'+p).textContent = money(amountFor(p));
+  });
+  $('#grandTotal').textContent = money(['left','front','right'].reduce((a,p)=>a+amountFor(p),0));
+  localStorage.setItem('scoreboard-state', JSON.stringify({
+    state,
+    basePrice:$('#basePrice').value,
+    taiPrice:$('#taiPrice').value
+  }));
+}
+function load(){
+  try{
+    const x = JSON.parse(localStorage.getItem('scoreboard-state')||'null');
+    if(!x) return;
+    Object.assign(state.left,x.state?.left||{});
+    Object.assign(state.front,x.state?.front||{});
+    Object.assign(state.right,x.state?.right||{});
+    if(x.basePrice!=null) $('#basePrice').value=x.basePrice;
+    if(x.taiPrice!=null) $('#taiPrice').value=x.taiPrice;
+  }catch(e){}
+}
+
+$$('.panel').forEach(panel=>{
+  panel.addEventListener('click',e=>{
+    const btn=e.target.closest('button[data-action]');
+    if(!btn) return;
+    const p=panel.dataset.player;
+    const a=btn.dataset.action;
+    if(a==='inc-base') state[p].base++;
+    if(a==='dec-base') state[p].base=Math.max(0,state[p].base-1);
+    if(a==='inc-tai') state[p].tai++;
+    if(a==='dec-tai') state[p].tai=Math.max(0,state[p].tai-1);
+
+    // 大按鈕：一局快速加減一底
+    if(a==='plus-round') state[p].base++;
+    if(a==='minus-round') state[p].base=Math.max(0,state[p].base-1);
+
+    if(a==='clear-player'){
+      const label = p==='left' ? '左' : p==='front' ? '前' : '右';
+      if(confirm(`確定要只清除「${label}」嗎？\n其他兩家不會被清除。`)){
+        state[p].base = 0;
+        state[p].tai = 0;
+      }
+    }
+
+    render();
+    ensureImmersive();
+  });
+});
+
+$('#basePrice').addEventListener('input',render);
+$('#taiPrice').addEventListener('input',render);
+
+$('#resetBtn').addEventListener('click',()=>{
+  if(confirm('確定要全部歸零嗎？')){
+    Object.values(state).forEach(x=>{x.base=0;x.tai=0});
+    render();
+  }
+  ensureImmersive();
+});
+
+// fullscreen
+async function enterFullscreen(){
+  try{
+    if(!document.fullscreenElement && document.documentElement.requestFullscreen){
+      await document.documentElement.requestFullscreen();
+    }
+  }catch(e){}
+  try{
+    if(screen.orientation && screen.orientation.lock){
+      await screen.orientation.lock('landscape');
+    }
+  }catch(e){}
+}
+async function exitFullscreen(){
+  try{
+    if(document.fullscreenElement) await document.exitFullscreen();
+  }catch(e){}
+}
+$('#fsBtn').addEventListener('click',async()=>{
+  if(document.fullscreenElement) await exitFullscreen();
+  else await enterFullscreen();
+  ensureImmersive();
+});
+document.addEventListener('fullscreenchange',()=>{
+  $('#fsBtn').classList.toggle('active',!!document.fullscreenElement);
+});
+
+// wake lock
+let wakeLock=null;
+let wakeDesired=true;
+
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{
+    wakeLock=await navigator.wakeLock.request('screen');
+    $('#wakeBtn').classList.add('active');
+    $('#wakeBtn').textContent='常亮 ON';
+    wakeLock.addEventListener('release',()=>{
+      $('#wakeBtn').classList.remove('active');
+      $('#wakeBtn').textContent='螢幕常亮';
+    });
+  }catch(e){}
+}
+async function releaseWakeLock(){
+  wakeDesired=false;
+  try{ if(wakeLock) await wakeLock.release(); }catch(e){}
+  wakeLock=null;
+  $('#wakeBtn').classList.remove('active');
+  $('#wakeBtn').textContent='常亮 OFF';
+}
+$('#wakeBtn').addEventListener('click',async()=>{
+  if(wakeDesired && wakeLock){
+    await releaseWakeLock();
+  }else{
+    wakeDesired=true;
+    await requestWakeLock();
+  }
+});
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && wakeDesired) requestWakeLock();
+});
+
+async function ensureImmersive(){
+  if(wakeDesired) requestWakeLock();
+  // browsers generally require a user gesture for fullscreen/orientation lock,
+  // so the first interaction attempts it automatically.
+  if(!document.fullscreenElement) await enterFullscreen();
+}
+
+document.addEventListener('pointerdown',()=>{
+  ensureImmersive();
+},{once:true});
+
+load();
+render();
+requestWakeLock();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
